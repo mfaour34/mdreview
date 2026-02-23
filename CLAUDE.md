@@ -20,8 +20,10 @@ src/mdreview/
   storage.py          # .review.json sidecar read/write + anchor drift reconciliation
   markdown.py         # ReviewMarkdown widget - cursor, selection, comment highlighting
   mermaid.py          # Mermaid diagram -> ASCII art preprocessing
+  diff.py             # Block-level diff between review rounds (snapshot vs current)
+  operations.py       # Pure domain operations (add/edit/delete comment, status, summary)
   widgets/
-    comment_input.py   # Modal for typing comments (Ctrl+S to submit)
+    comment_input.py   # Modal for typing comments (Ctrl+Enter to submit)
     comment_popover.py # Floating overlay showing comments for current block
     file_selector.py   # Modal file picker with status indicators
     help_overlay.py    # Keybinding help screen
@@ -30,7 +32,7 @@ src/mdreview/
 
 ## Key Patterns
 
-- **Sidecar files**: Reviews stored as `<file>.md.review.json` alongside the markdown file. Gitignored via `.review.json` pattern.
+- **Sidecar files**: Reviews stored as `<file>.md.review.json` alongside the markdown file. Gitignored via `*.review.json` pattern.
 - **Anchor drift**: When markdown content changes between sessions, `storage.reconcile_drift()` fuzzy-matches comment anchors to new line positions (threshold: 0.6 similarity ratio). Unmatched comments are marked `orphaned`.
 - **Mermaid rendering**: Mermaid code blocks are preprocessed into ASCII art via `mermaid-ascii-diagrams`. Press `o` to open in mermaid.live, `m` to toggle ASCII/raw.
 - **Exit codes**: 0 = all approved, 1 = changes requested, 2 = incomplete/unreviewed files.
@@ -44,6 +46,14 @@ This project uses [OpenSpec](https://github.com/anthropics/claude-code) for stru
 - **Changes** go through proposal -> design -> delta specs -> tasks -> implementation -> archive.
 - **Archived changes** in `openspec/changes/archive/` preserve the full artifact trail.
 
+## Lint
+
+```bash
+ruff check .            # Lint (runs as pre-commit hook)
+ruff format --check .   # Format check (runs as pre-commit hook)
+ruff format .           # Auto-format
+```
+
 ## Testing
 
 ```bash
@@ -53,4 +63,4 @@ pytest -v                  # Verbose output
 pytest tests/test_storage.py  # Run a specific module
 ```
 
-Tests cover models, storage (sidecar I/O, drift reconciliation), diff computation, and mermaid preprocessing. Test cases map to scenarios defined in `openspec/specs/`.
+Tests cover models, storage (sidecar I/O, drift reconciliation), diff computation, operations, and mermaid preprocessing. Test cases map to scenarios defined in `openspec/specs/`.
